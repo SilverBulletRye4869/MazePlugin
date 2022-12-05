@@ -1,0 +1,8 @@
+name: MazeCreate
+version: '${project.version}'
+main: silverassist.mazecreate.MazeCreate
+api-version: 1.17
+
+commands:
+  maze:
+    usage: 迷路生成コマンド
