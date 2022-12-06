@@ -83,15 +83,25 @@ public class Command implements CommandExecutor {
                         locRegister[1][i] = s;
                     }
                 }
-                if((locRegister[1][0] - locRegister[0][0])%2==1){
-                    locRegister[1][0]--;
-                    sendPrefixMessage(p,"§cdxが奇数出なかったので調整を行いました");
+
+                int width = args.length>2 && args[2].matches("\\d+") ? Integer.parseInt(args[2]) : 1;
+                if((locRegister[1][0] - locRegister[0][0])%(width+1)!=0){
+                    locRegister[1][0]-=(locRegister[1][0] - locRegister[0][0])%(width+1);
+                    if(locRegister[1][0]==0){
+                        sendPrefixMessage(p,"§cdxが小さすぎます");
+                        return true;
+                    }
+                    sendPrefixMessage(p,"§c§nn(間隔+1)+1=Δx§r§cを満たす自然数nが存在しなかったのでxが若干縮小されました");
                 }
-                if((locRegister[1][2] - locRegister[0][2])%2==1){
-                    locRegister[1][2]--;
-                    sendPrefixMessage(p,"§cdzが奇数出なかったので調整を行いました");
+                if((locRegister[1][2] - locRegister[0][2])%(width+1)!=0){
+                    locRegister[1][2]-=(locRegister[1][2] - locRegister[0][2])%(width+1);
+                    if(locRegister[1][2]==0){
+                        sendPrefixMessage(p,"§cdxが小さすぎます");
+                        return true;
+                    }
+                    sendPrefixMessage(p,"§c§nn(間隔+1)+1=Δz§r§cを満たす自然数nが存在しなかったのでzが若干縮小されました");
                 }
-                MainSystem.createMaze(locRegister, Bukkit.getWorld(locS[0]), mate);
+                MainSystem.createMaze(locRegister, Bukkit.getWorld(locS[0]), mate, width);
                 sendPrefixMessage(p,"§a§l迷路を生成しました");
 
         }

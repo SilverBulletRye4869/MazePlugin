@@ -7,7 +7,7 @@ import org.bukkit.World;
 import java.util.*;
 
 public class MainSystem {
-    public static void createMaze(float[][] Age, World world, Material mate){
+    public static void createMaze(float[][] Age, World world, Material mate,  int width){
         //float[][] Age = new float[][]{{2,3},{502,503}};
         int lx = (int)(Age[1][0] - Age[0][0]);
         int lz = (int)(Age[1][2] - Age[0][2]);
@@ -23,7 +23,7 @@ public class MainSystem {
                     setBlock(world,Age[0],List.of(i,j),h,mate);
                     continue;
                 }
-                if(i%2==0 && j%2==0){
+                if(i%(width+1)==0 && j%(width+1)==0){
                     if(!start.containsKey(i))start.put(i,new LinkedList<>());
                     start.get(i).add(j);
                     cnt++;
@@ -45,7 +45,7 @@ public class MainSystem {
             int back = 0;
             while (true){
                 if(!fin.contains(loc))fin.add(new ArrayList<>(loc));
-                int[] next = search(fin.get(fin.size()-back-1), fin);
+                int[] next = search(fin.get(fin.size()-back-1), fin, width);
                 if(next==null){
                     back++;
                     if(fin.size() == back)break;
@@ -54,12 +54,12 @@ public class MainSystem {
                 boolean breakFlag = false;
                 if(data[loc.get(0) +next[0]][loc.get(1) +next[1] ] == 1)breakFlag=true;
 
-                for(double j=0.5;j<=1;j+=0.5){
-                    data[loc.get(0) + (int)(next[0] *j)][loc.get(1) + (int)(next[1]* j)] = 1;
-                    setBlock(world,Age[0],List.of(loc.get(0) + (int)(next[0] *j), loc.get(1) + (int)(next[1]* j)),h,mate);
+                for(double j=1;j<=width+1;j++){
+                    data[loc.get(0) + (int)(next[0] *j/(width+1))][loc.get(1) + (int)(next[1]* j/(width+1))] = 1;
+                    setBlock(world,Age[0],List.of(loc.get(0) + (int)(next[0] *j/(width+1)), loc.get(1) + (int)(next[1]* j/(width+1))),h,mate);
                 }
-                for(int i = 0;i<2;i++)loc.set(i,loc.get(i) + next[i]);
 
+                for(int i = 0;i<2;i++)loc.set(i,loc.get(i) + next[i]);
 
                 if(breakFlag)break;
                 int l02 = loc.get(0);
@@ -71,14 +71,13 @@ public class MainSystem {
         }
     }
 
-    private static int[] search(List<Integer> l, List<List<Integer>> fin){
-        List<int[]> d = new LinkedList<>(){{add(new int[]{-2,0});add(new int[]{2,0});add(new int[]{0,-2});add(new int[]{0,2});}};
+    private static int[] search(List<Integer> l, List<List<Integer>> fin, int width){
+        List<int[]> d = new LinkedList<>(){{add(new int[]{-(width+1),0});add(new int[]{(width+1),0});add(new int[]{0,-(width+1)});add(new int[]{0,(width+1)});}};
         new ArrayList<>(d).forEach( dd ->{
             if(fin.contains(List.of(l.get(0)+dd[0],l.get(1)+dd[1])))d.remove(dd);
         });
         if(d.size()==0)return null;
-        int[] r = d.get((int) (Math.random() * d.size()));
-        return new int[]{r[0],r[1]};
+        return d.get((int) (Math.random() * d.size()));
     }
 
     private static void setBlock(World w,float[] base, List<Integer> loc,int height,Material m){
