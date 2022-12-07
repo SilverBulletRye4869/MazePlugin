@@ -28,7 +28,7 @@ public class Tab implements TabCompleter {
                 material.add(name);
             });
             return material;
-        }
+        }else if(args.length==3)return List.of("0","1","1r","2");
         return null;
     }
 }
