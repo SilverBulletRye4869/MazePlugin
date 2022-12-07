@@ -7,6 +7,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import silverassist.mazecreate.CreateSystem.ExtendWall;
+import silverassist.mazecreate.CreateSystem.StickKnockDown;
+
 import java.util.*;
 
 import static silverassist.mazecreate.Function.*;
@@ -36,7 +39,7 @@ public class Command implements CommandExecutor {
                 p.getInventory().addItem(item);
                 break;
             case "create":
-                if(args.length<2)return true;
+                if(args.length<3)return true;
                 Material mate;
                 try {
                     mate = Material.valueOf(args[1]);
@@ -44,9 +47,8 @@ public class Command implements CommandExecutor {
                     sendPrefixMessage(p,"§cアイテムが適切ではありません");
                     return true;
                 }
-                if(mate==null)return true;
+
                 item = p.getInventory().getItemInMainHand();
-                if (item == null) return true;
                 if (item.getType() != Material.DIAMOND_AXE) return true;  //ダイヤの斧か
                 meta = item.getItemMeta();
                 if (meta == null) return true;
@@ -84,7 +86,7 @@ public class Command implements CommandExecutor {
                     }
                 }
 
-                int width = args.length>2 && args[2].matches("\\d+") ? Integer.parseInt(args[2]) : 1;
+                int width = args.length>3 && args[3].matches("\\d+") ? Integer.parseInt(args[2]) : 1;
                 if((locRegister[1][0] - locRegister[0][0])%(width+1)!=0){
                     locRegister[1][0]-=(locRegister[1][0] - locRegister[0][0])%(width+1);
                     if(locRegister[1][0]==0){
@@ -101,7 +103,12 @@ public class Command implements CommandExecutor {
                     }
                     sendPrefixMessage(p,"§c§nn(間隔+1)+1=Δz§r§cを満たす自然数nが存在しなかったのでzが若干縮小されました");
                 }
-                MainSystem.createMaze(locRegister, Bukkit.getWorld(locS[0]), mate, width);
+                if(args[2].equals("0"))ExtendWall.createMaze(locRegister, Bukkit.getWorld(locS[0]), mate, width);
+                else if(args[2].charAt(0)=='1') new StickKnockDown().createMaze(locRegister, Bukkit.getWorld(locS[0]), mate, width, args[2].contains("r"));
+                else{
+                    sendPrefixMessage(p, "§c§l不明な生成タイプ番号です");
+                    return true;
+                }
                 sendPrefixMessage(p,"§a§l迷路を生成しました");
 
         }
