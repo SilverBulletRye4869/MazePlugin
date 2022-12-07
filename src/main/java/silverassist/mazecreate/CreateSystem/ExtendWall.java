@@ -1,12 +1,12 @@
-package silverassist.mazecreate;
+package silverassist.mazecreate.CreateSystem;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import silverassist.mazecreate.Function;
 
 import java.util.*;
 
-public class MainSystem {
+public class ExtendWall {
     public static void createMaze(float[][] Age, World world, Material mate,  int width){
         //float[][] Age = new float[][]{{2,3},{502,503}};
         int lx = (int)(Age[1][0] - Age[0][0]);
@@ -20,7 +20,7 @@ public class MainSystem {
             for(int j=0;j<=lz;j++){
                 if(i==0 || j==0 || i==lx || j==lz){
                     data[i][j] = 1;
-                    setBlock(world,Age[0],List.of(i,j),h,mate);
+                    Function.setBlock(world,Age[0],List.of(i,j),h,mate);
                     continue;
                 }
                 if(i%(width+1)==0 && j%(width+1)==0){
@@ -39,7 +39,7 @@ public class MainSystem {
             if(start.get(l0).size()==1)start.remove(l0);
             else start.get(l0).remove(start.get(l0).indexOf(loc.get(1)));
             data[l0][l1] = 1;
-            setBlock(world,Age[0],loc,h,mate);
+            Function.setBlock(world,Age[0],loc,h,mate);
             List<List<Integer>> fin = new LinkedList<>();
             cnt--;
             int back = 0;
@@ -51,12 +51,11 @@ public class MainSystem {
                     if(fin.size() == back)break;
                     continue;
                 }
-                boolean breakFlag = false;
-                if(data[loc.get(0) +next[0]][loc.get(1) +next[1] ] == 1)breakFlag=true;
+                boolean breakFlag = data[loc.get(0) + next[0]][loc.get(1) + next[1]] == 1;
 
                 for(double j=1;j<=width+1;j++){
-                    data[loc.get(0) + (int)(next[0] *j/(width+1))][loc.get(1) + (int)(next[1]* j/(width+1))] = 1;
-                    setBlock(world,Age[0],List.of(loc.get(0) + (int)(next[0] *j/(width+1)), loc.get(1) + (int)(next[1]* j/(width+1))),h,mate);
+                    data[loc.get(0) + (int)Math.round(next[0] *j/(width+1))][loc.get(1) + (int)Math.round(next[1]* j/(width+1))] = 1;
+                    Function.setBlock(world,Age[0],List.of(loc.get(0) + (int)(next[0] *j/(width+1)), loc.get(1) + (int)(next[1]* j/(width+1))),h,mate);
                 }
 
                 for(int i = 0;i<2;i++)loc.set(i,loc.get(i) + next[i]);
@@ -69,6 +68,7 @@ public class MainSystem {
 
             }
         }
+        CreateFile.createMazeFileByWall(data);
     }
 
     private static int[] search(List<Integer> l, List<List<Integer>> fin, int width){
@@ -80,11 +80,6 @@ public class MainSystem {
         return d.get((int) (Math.random() * d.size()));
     }
 
-    private static void setBlock(World w,float[] base, List<Integer> loc,int height,Material m){
-        int x = loc.get(0);
-        int z = loc.get(1);
-        for(int k = 0;k<=height;k++){
-            new Location(w,base[0]+x,base[1]+k,base[2]+z).getBlock().setType(m);
-        }
-    }
+
+
 }
