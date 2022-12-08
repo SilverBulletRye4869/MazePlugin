@@ -16,15 +16,17 @@ public class Tab implements TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if(args.length==1){
-            return List.of("wand","create");
+            if(sender.isOp())return List.of("wand","create","sethome","giveup");
+            else return List.of("giveup");
         }
-        else if(args.length==2){
+        if(!sender.isOp())return null;
+        if(args.length==4){
             if(!args[0].equals("create"))return null;
             List<String> material = new ArrayList<>();
             Arrays.asList(Material.values()).forEach(m -> {
                 if(!m.isBlock())return;
                 String name = m.name();
-                if(name.indexOf(args[1])!=0)return;
+                if(name.indexOf(args[3])!=0)return;
                 material.add(name);
             });
             return material;
