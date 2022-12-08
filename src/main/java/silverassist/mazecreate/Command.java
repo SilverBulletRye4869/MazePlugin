@@ -1,9 +1,12 @@
 package silverassist.mazecreate;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -21,7 +24,6 @@ public class Command implements CommandExecutor {
     public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
         if(!(sender instanceof Player))return true;
         Player p = (Player) sender;
-        if(!p.isOp())return true;
         if(args.length<1){
             //help
             return true;
@@ -29,20 +31,29 @@ public class Command implements CommandExecutor {
 
         ItemStack item;
         ItemMeta meta;
+        FileConfiguration data = MazeCreate.getDataYml().getConfig();
+
         switch (args[0]){
             case "wand":
+                if(!p.isOp())return true;
                 item = new ItemStack(Material.DIAMOND_AXE);
                 meta = item.getItemMeta();
                 meta.setDisplayName(MAZEWAND);
                 meta.setLore(List.of("§f§l開始位置: §6§l左クリックで指定","§f§l終了位置: §6§l右クリックで指定",p.getUniqueId().toString()));
                 item.setItemMeta(meta);
                 p.getInventory().addItem(item);
-                break;
+                return true;
             case "create":
-                if(args.length<3)return true;
+                if(!p.isOp())return true;
+                if(args.length<4)return true;
+                if(data.get(args[1])!=null){
+                    sendPrefixMessage(p,"§c§lそのidの迷路は存在します");
+                    return true;
+                }
+
                 Material mate;
                 try {
-                    mate = Material.valueOf(args[1]);
+                    mate = Material.valueOf(args[3]);
                 }catch (IllegalArgumentException e){
                     sendPrefixMessage(p,"§cアイテムが適切ではありません");
                     return true;
@@ -86,7 +97,7 @@ public class Command implements CommandExecutor {
                     }
                 }
 
-                int width = args.length>3 && args[3].matches("\\d+") ? Integer.parseInt(args[2]) : 1;
+                int width = args.length > 4 && args[4].matches("\\d+") ? Integer.parseInt(args[2]) : 1;
                 if((locRegister[1][0] - locRegister[0][0])%(width+1)!=0){
                     locRegister[1][0]-=(locRegister[1][0] - locRegister[0][0])%(width+1);
                     if(locRegister[1][0]==0){
@@ -103,15 +114,44 @@ public class Command implements CommandExecutor {
                     }
                     sendPrefixMessage(p,"§c§nn(間隔+1)+1=Δz§r§cを満たす自然数nが存在しなかったのでzが若干縮小されました");
                 }
-                if(args[2].equals("0"))ExtendWall.createMaze(locRegister, Bukkit.getWorld(locS[0]), mate, width);
-                else if(args[2].charAt(0)=='1') new StickKnockDown().createMaze(locRegister, Bukkit.getWorld(locS[0]), mate, width, args[2].contains("r"));
+
+                World world = Bukkit.getWorld(locS[0]);
+                if(args[2].equals("0"))ExtendWall.createMaze(locRegister, world, mate, width);
+                else if(args[2].charAt(0)=='1') new StickKnockDown().createMaze(locRegister,world, mate, width, args[2].contains("r"));
                 else{
                     sendPrefixMessage(p, "§c§l不明な生成タイプ番号です");
                     return true;
                 }
+                data.set(args[1]+".world",world.getUID().toString());
+                data.set(args[1]+".start",List.of(locRegister[0][0],locRegister[0][1],locRegister[0][2]));
+                data.set(args[1]+".end",List.of(locRegister[1][0],locRegister[1][1],locRegister[1][2]));
                 sendPrefixMessage(p,"§a§l迷路を生成しました");
+                break;
 
+            case "sethome":
+                if(!p.isOp())return true;
+                if(args.length<2)return true;
+                if(data.get(args[1])==null){
+                    sendPrefixMessage(p,"§c§lそのidの迷路が見つかりません");
+                    return true;
+                }
+                data.set(args[1]+".home", p.getLocation());
+                sendPrefixMessage(p,"§a現在地を§d§lid:"+args[1]+"§a§lのホームに設定しました。");
+                break;
+
+            case "giveup":
+                UUID u = p.getUniqueId();
+                if(!TimerSystem.timeMemo.containsKey(u)){
+                    sendPrefixMessage(p,"§c§l現在挑戦中の迷路がありません");
+                    return true;
+                }
+                String id = TimerSystem.timeMemo.get(u).get(0);
+                Location home = data.getLocation(id+".home");
+                p.teleport( home == null ? p.getWorld().getSpawnLocation() : home);
+                sendPrefixMessage(p,"§a§l迷路をギブアップしました");
+                return true;
         }
+        MazeCreate.getDataYml().saveConfig();
         return true;
     }
 }
