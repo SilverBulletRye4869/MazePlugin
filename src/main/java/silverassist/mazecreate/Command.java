@@ -150,6 +150,25 @@ public class Command implements CommandExecutor {
                 p.teleport( home == null ? p.getWorld().getSpawnLocation() : home);
                 sendPrefixMessage(p,"§a§l迷路をギブアップしました");
                 return true;
+
+            case "delete":
+                if(!p.isOp())return true;
+                if(args.length<2)return true;
+                if(data.get(args[1])==null){
+                    sendPrefixMessage(p,"§c§lそのidの迷路が見つかりません");
+                    return true;
+                }
+                world = Bukkit.getWorld(UUID.fromString(data.getString(args[1]+".world")));
+                List<Float> s = data.getFloatList(args[1]+".start");
+                List<Float> e = data.getFloatList(args[1]+".end");
+                for(int i = s.get(0).intValue(); i<=e.get(0).intValue();i++){
+                    for(int j =s.get(1).intValue();j<=e.get(1).intValue();j++){
+                        for(int k = s.get(2).intValue();k<e.get(2).intValue();k++)world.getBlockAt(i,j,k).setType(Material.AIR);
+                    }
+                }
+                data.set(args[1],null);
+                sendPrefixMessage(p,"§d§lid:"+args[1]+"§a§lの迷路を正常に削除しました");
+
         }
         MazeCreate.getDataYml().saveConfig();
         return true;
