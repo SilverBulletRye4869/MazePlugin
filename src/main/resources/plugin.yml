@@ -5,4 +5,4 @@ api-version: 1.17
 
 commands:
   maze:
-    usage: 迷路生成コマンド
+    usage: /maze <create/wand> (<id> <type> <block> [<width = 1>])
