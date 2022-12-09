@@ -1,8 +1,6 @@
 package silverassist.mazecreate;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -30,7 +28,7 @@ public class Tab implements TabCompleter {
                 material.add(name);
             });
             return material;
-        }else if(args.length==3)return List.of("0","1","1r","2");
+        }else if(args.length==3)return List.of("0","1","1r");
         return null;
     }
 }
