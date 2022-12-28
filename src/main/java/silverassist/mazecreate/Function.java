@@ -21,10 +21,8 @@ public class Function {
     }
 
     public static void setBlock(World w, float[] base, List<Integer> loc, int height, Material m){
-        int x = loc.get(0);
-        int z = loc.get(1);
         for(int k = 0;k<=height;k++){
-            new Location(w,base[0]+x,base[1]+k,base[2]+z).getBlock().setType(m);
+            new Location(w,base[0]+loc.get(0),base[1]+k,base[2]+loc.get(1)).getBlock().setType(m);
         }
     }
 

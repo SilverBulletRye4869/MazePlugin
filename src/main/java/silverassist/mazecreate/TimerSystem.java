@@ -10,19 +10,24 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static silverassist.mazecreate.Function.broadCast;
+
 import static silverassist.mazecreate.Function.sendPrefixMessage;
 
 public class TimerSystem implements Listener {
+    private final JavaPlugin plugin;
+    public TimerSystem(JavaPlugin pl){
+        plugin = pl;
+    }
     static Map<UUID, List<String>> timeMemo = new HashMap<>();
     private HashMap<Player, Location> coolDown = new HashMap<>();
     private HashMap<Location,String> plateMemo = new HashMap<>();
     @EventHandler
-    public void playerMoveEvent(PlayerInteractEvent e){
+    public void playerInteractEvent(PlayerInteractEvent e){
         if(e.getAction() != Action.PHYSICAL)return;
         Player p = e.getPlayer();
         Location loc = e.getClickedBlock().getLocation().add(0,-1,0);
@@ -51,7 +56,7 @@ public class TimerSystem implements Listener {
             id = AtoID.get();
             if(id.equals(""))return;
             plateMemo.put(loc,id);
-            Bukkit.getScheduler().runTaskLater(MazeCreate.getInstance(), new Runnable() {
+            Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
                 @Override
                 public void run() {
                     plateMemo.remove(loc);
@@ -61,7 +66,7 @@ public class TimerSystem implements Listener {
         e.setCancelled(true);
         UUID u = p.getUniqueId();
         coolDown.put(p,loc);
-        Bukkit.getScheduler().runTaskLater(MazeCreate.getInstance(), new Runnable(){
+        Bukkit.getScheduler().runTaskLater(plugin, new Runnable(){
             @Override
             public void run() {
                 coolDown.remove(p);
