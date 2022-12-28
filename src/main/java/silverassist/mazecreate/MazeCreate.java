@@ -10,17 +10,20 @@ public final class MazeCreate extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
-        plugin.saveDefaultConfig();
         data = new CustomConfig(this,"data.yml");
         time = new CustomConfig(this,"time.yml");
+        plugin.saveDefaultConfig();
         data.saveDefaultConfig();
         time.saveDefaultConfig();
-        // Plugin startup logic
+        //コマンド登録
         PluginCommand command = getCommand("maze");
-        command.setExecutor(new Command());
-        command.setTabCompleter(new Tab());
-        this.getServer().getPluginManager().registerEvents(new RangeSet(),this);
-        this.getServer().getPluginManager().registerEvents(new TimerSystem(), this);
+        if(command!=null){
+            command.setExecutor(new Command());
+            command.setTabCompleter(new Tab());
+        }
+        //イベント登録
+        this.getServer().getPluginManager().registerEvents(new RangeSet(),this);  //範囲指定用イベント
+        this.getServer().getPluginManager().registerEvents(new TimerSystem(this), this);  //スタート、ゴール検知用
 
 
 
