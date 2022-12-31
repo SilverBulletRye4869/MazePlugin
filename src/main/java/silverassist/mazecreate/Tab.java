@@ -14,7 +14,7 @@ public class Tab implements TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if(args.length==1){
-            if(sender.isOp())return List.of("wand","create","sethome","giveup");
+            if(sender.isOp())return List.of("wand","define","create","sethome","giveup","define");
             else return List.of("giveup");
         }
         if(!sender.isOp())return null;
