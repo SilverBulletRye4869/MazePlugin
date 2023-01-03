@@ -39,6 +39,7 @@ public class TimerSystem implements Listener {
         if(block!= Material.DIAMOND_BLOCK && block!=Material.GOLD_BLOCK)return;
         FileConfiguration data = MazeCreate.getDataYml().getConfig();
 
+        //挑戦中の迷路の取得
         String id;
         if(plateMemo.containsKey(loc)){
             id = plateMemo.get(loc);
@@ -73,6 +74,7 @@ public class TimerSystem implements Listener {
             }
         },20*5);
 
+        //メインシステム
         if(block == Material.DIAMOND_BLOCK) {
             timeMemo.remove(u);
             timeMemo.put(u,List.of(id,String.valueOf(System.currentTimeMillis())));
