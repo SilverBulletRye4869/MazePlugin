@@ -8,16 +8,17 @@ import java.util.*;
 
 public class ExtendWall {  //壁伸ばし法
     final int width;  //迷路の幅
+    public ExtendWall(){this(1);}
     public ExtendWall(int width){
         this.width = width;
     }
-    public void createMaze(float[][] Age, World world, Material mate){
+    public void createMaze(int[][] Age, World world, Material mate){
         //float[][] Age = new float[][]{{2,3},{502,503}};
 
         //横幅、縦幅、高さを取得
-        int lx = (int)(Age[1][0] - Age[0][0]);
-        int lz = (int)(Age[1][2] - Age[0][2]);
-        int h = (int)(Age[1][1]-Age[0][1]);
+        int lx =Age[1][0] - Age[0][0];
+        int lz =Age[1][1] - Age[0][1];
+        int h = Age[0][2];
         int[][] data = new int[lx+1][lz+1];  //迷路の既存壁データを作成しておく奴
 
         Map<Integer, List<Integer>> start = new TreeMap<>();  //スタート地点の候補を格納しておくMap
