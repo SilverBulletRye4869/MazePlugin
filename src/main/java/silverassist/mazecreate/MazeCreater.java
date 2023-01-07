@@ -3,7 +3,7 @@ package silverassist.mazecreate;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class MazeCreate extends JavaPlugin {
+public final class MazeCreater extends JavaPlugin {
     private static JavaPlugin plugin = null;
     private static CustomConfig data = null;
     private static CustomConfig time = null;
@@ -16,11 +16,7 @@ public final class MazeCreate extends JavaPlugin {
         data.saveDefaultConfig();
         time.saveDefaultConfig();
         //コマンド登録
-        PluginCommand command = getCommand("maze");
-        if(command!=null){
-            command.setExecutor(new Command());
-            command.setTabCompleter(new Tab());
-        }
+        new MazeCreaterCommand(this);
         //イベント登録
         this.getServer().getPluginManager().registerEvents(new RangeSet(),this);  //範囲指定用イベント
         this.getServer().getPluginManager().registerEvents(new TimerSystem(this), this);  //スタート、ゴール検知用

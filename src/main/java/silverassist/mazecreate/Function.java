@@ -17,7 +17,7 @@ public class Function {
     }
 
     public static void broadCast(String s){
-        MazeCreate.getInstance().getServer().broadcastMessage(PREFIX+s);
+        MazeCreater.getInstance().getServer().broadcastMessage(PREFIX+s);
     }
 
     public static void setBlock(World w, float[] base, List<Integer> loc, int height, Material m){

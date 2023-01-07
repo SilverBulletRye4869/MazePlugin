@@ -37,7 +37,7 @@ public class TimerSystem implements Listener {
         }
         Material block = loc.getBlock().getType();
         if(block!= Material.DIAMOND_BLOCK && block!=Material.GOLD_BLOCK)return;
-        FileConfiguration data = MazeCreate.getDataYml().getConfig();
+        FileConfiguration data = MazeCreater.getDataYml().getConfig();
 
         //挑戦中の迷路の取得
         String id;
@@ -93,10 +93,10 @@ public class TimerSystem implements Listener {
             Location home = data.getLocation(id+".home");
             p.teleport( home == null ? p.getWorld().getSpawnLocation() : home);
 
-            FileConfiguration time = MazeCreate.getTimeYml().getConfig();
+            FileConfiguration time = MazeCreater.getTimeYml().getConfig();
             long min = time.getLong(id+"."+u) == 0 ?  Long.MAX_VALUE : time.getLong(id+"."+u);
             time.set(id+"."+u, Math.min(clearTime, min));
-            MazeCreate.getTimeYml().saveConfig();
+            MazeCreater.getTimeYml().saveConfig();
         }
 
     }

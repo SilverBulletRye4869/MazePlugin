@@ -1,11 +1,11 @@
 package silverassist.mazecreate;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -17,33 +17,76 @@ import java.util.*;
 
 import static silverassist.mazecreate.Function.*;
 
-public class Command implements CommandExecutor {
+public class MazeCreaterCommand implements CommandExecutor, TabCompleter {
 
+    private final MazeCreater plugin;
+    private final List<MazePlayer> mazePlayerList = new ArrayList<>();
+    public MazeCreaterCommand(MazeCreater plugin){
+        this.plugin = plugin;
+        plugin.getCommand("maze").setExecutor(this);
+    }
     @Override
     public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-        if(!(sender instanceof Player))return true;
+        if(sender instanceof Player){
+            Player player = (Player) sender;
+            if(args.length == 0){
+                help(player);
+                return true;
+            } else {
+
+            }
+        } else if (sender instanceof BlockCommandSender){
+            BlockCommandSender cb = (BlockCommandSender) sender;
+            Player player = PlayerSearch.getNearbyPlayer(cb.getBlock().getLocation());
+            //example /maze start 12 50 12 0 90
+            if(args.length == 6){
+                if(args[0].equals("start")) {
+                    player.teleportAsync(new Location(player.getWorld(), Util.strToInt(args[1]), Util.strToInt(args[2]), Util.strToInt(args[3]), Util.strToInt(args[4]), Util.strToInt(args[5])));
+                    player.sendMessage(Component.text("迷路開始"));
+                    startMaze(player.getUniqueId());
+                } else if(args[0].equals("finish")){
+                    player.teleportAsync(new Location(player.getWorld(), Util.strToInt(args[1]), Util.strToInt(args[2]), Util.strToInt(args[3]), Util.strToInt(args[4]), Util.strToInt(args[5])));
+                    player.sendMessage(Component.text("ゴール:"+clearMaze(player.getUniqueId())));
+                } else if(args[0].equals("create")){
+                    //   /maze create y x1 z1 x2 z2 material
+
+                }
+            } else {
+                player.sendMessage(Component.text("使い方 /maze start x y z pitch yaw"));
+                player.sendMessage(Component.text("使い方 /maze create y x1 z1 x2 z2"));
+            }
+        }
         Player p = (Player) sender;
 
         ItemStack item;
         ItemMeta meta;
-        FileConfiguration data = MazeCreate.getDataYml().getConfig();
+        FileConfiguration data = MazeCreater.getDataYml().getConfig();
         World world;
+
 
         if(args.length==0){
             help(p);
             return true;
         }
-        switch (args[0]) {
-            //===============================================================================領域指定斧取得
-            case "wand":
-                if (!p.isOp()) return true;
-                item = new ItemStack(Material.DIAMOND_AXE);
-                meta = item.getItemMeta();
-                meta.setDisplayName(MAZEWAND);
-                meta.setLore(List.of("§f§l開始位置: §6§l左クリックで指定", "§f§l終了位置: §6§l右クリックで指定", p.getUniqueId().toString()));
-                item.setItemMeta(meta);
-                p.getInventory().addItem(item);
+
+        // playerのパーミッションで分けるといいかも
+        if(p.hasPermission("op")){
+            if(args.length == 2 && args[0].equals("giveup")){
+                UUID u = p.getUniqueId();
+                if (!TimerSystem.timeMemo.containsKey(u)) {
+                    sendPrefixMessage(p, "§c§l現在挑戦中の迷路がありません");
+                    return true;
+                }
+                String id = TimerSystem.timeMemo.get(u).get(0);
+                Location home = data.getLocation(id + ".home");
+                p.teleport(home == null ? p.getWorld().getSpawnLocation() : home);
+                sendPrefixMessage(p, "§a§l迷路をギブアップしました");
                 return true;
+            }
+        } else {
+
+        }
+        switch (args[0]) {
             //================================================================================迷路生成
             case "create":
             case "define":
@@ -206,7 +249,7 @@ public class Command implements CommandExecutor {
                 sendPrefixMessage(p,"§e§l--- 以上 ---");
                 return true;
             }
-        MazeCreate.getDataYml().saveConfig();
+        MazeCreater.getDataYml().saveConfig();
         return true;
     }
 
@@ -223,4 +266,54 @@ public class Command implements CommandExecutor {
         sendPrefixMessage(p,"§a/maze giveup §d: 現在挑戦中の迷路を諦める");
     }
 
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> autoComplete = new ArrayList<>();
+        if(sender.hasPermission("op")){
+            if(args.length == 1){
+                autoComplete.addAll(Arrays.asList("start","finish","create"));
+            } else if()
+        } else {
+            autoComplete.add("giveup");
+        }
+
+        if(args.length==1){
+            if(sender.isOp())return List.of("wand","define","create","sethome","giveup","define");
+            else return List.of("giveup");
+        }
+        if(!sender.isOp())return null;
+        if(args.length==4){
+            if(!args[0].equals("create"))return null;
+            List<String> material = new ArrayList<>();
+            Arrays.asList(Material.values()).forEach(m -> {
+                if(!m.isBlock())return;
+                String name = m.name();
+                if(name.indexOf(args[3])!=0)return;
+                material.add(name);
+            });
+            return material;
+        }else if(args.length==3)return List.of("0","1","1r");
+        return null;
+    }
+
+    private MazePlayer getMazePlayer(UUID uuid){
+        Optional<MazePlayer> optMazePlayer = mazePlayerList.stream().filter(p -> p.getUuid().equals(uuid)).findFirst();
+        return optMazePlayer.orElse(null);
+    }
+    private String clearMaze(UUID uuid){
+        MazePlayer data = getMazePlayer(uuid);
+        if(data!=null){
+            data.finish();
+            String time = data.getTime();
+            mazePlayerList.removeIf(p -> p.getUuid().equals(uuid));
+            return time;
+        } else {
+            return "-1";
+        }
+    }
+    private void startMaze(UUID uuid){
+        MazePlayer data = new MazePlayer(uuid);
+        data.start();
+        mazePlayerList.add(data);
+    }
 }

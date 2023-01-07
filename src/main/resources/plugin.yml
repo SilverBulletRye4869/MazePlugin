@@ -6,3 +6,11 @@ api-version: 1.16
 commands:
   maze:
     usage: /maze <create/wand> (<id> <type> <block> [<width = 1>])
+# defaultにはtrue(デフォルトで許可)、false(デフォルトで禁止)、op(オペレーターのみ許可)、not-op(オペレーター以外に許可)
+permissions:
+  maze.giveup:
+    description: Give up in the middle of the maze
+    default: true
+  maze.*:
+    description: Gives access to all commands
+    default: op
