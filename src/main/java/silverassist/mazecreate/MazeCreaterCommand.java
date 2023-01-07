@@ -14,6 +14,7 @@ import silverassist.mazecreate.CreateSystem.ExtendWall;
 import silverassist.mazecreate.CreateSystem.StickKnockDown;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static silverassist.mazecreate.Function.*;
 
@@ -48,8 +49,11 @@ public class MazeCreaterCommand implements CommandExecutor, TabCompleter {
                     player.teleportAsync(new Location(player.getWorld(), Util.strToInt(args[1]), Util.strToInt(args[2]), Util.strToInt(args[3]), Util.strToInt(args[4]), Util.strToInt(args[5])));
                     player.sendMessage(Component.text("ゴール:"+clearMaze(player.getUniqueId())));
                 } else if(args[0].equals("create")){
-                    //   /maze create y x1 z1 x2 z2 material
-
+                    int[][] args_I = this.mazeFineTuning(player,Stream.of(new String[]{args[1],args[2],args[3],args[4],args[5]}).mapToInt(Integer::parseInt).toArray());
+                    if(args_I==null)return true;
+                    Material mate = Material.DIAMOND_BLOCK;  //明示的に変数を作成してるだけなので、引数に直代渡ししても構いません
+                    new ExtendWall(/*ここに幅*/).createMaze(args_I,player.getWorld(),mate);
+                    //┗args_fはargs[0]を含んでないので番号が一つズレる
                 }
             } else {
                 player.sendMessage(Component.text("使い方 /maze start x y z pitch yaw"));
@@ -145,10 +149,10 @@ public class MazeCreaterCommand implements CommandExecutor, TabCompleter {
                 String[] locS = lore.get(0).replace("§f§l開始位置: ", "").split(",");  //最少位置
                 world = Bukkit.getWorld(locS[0]);  //ワールドを記憶
                 String[] locE = lore.get(1).replace("§f§l終了位置: ", "").split(",");  //最大位置
-                float[][] locRegister = new float[2][3];
+                int[][] locRegister = new int[2][3];
                 for (int i = 0; i < 3; i++) {
-                    float s = Float.parseFloat(locS[i + 1]);
-                    float e = Float.parseFloat(locE[i + 1]);
+                    int s = Integer.parseInt(locS[i + 1]);
+                    int e = Integer.parseInt(locE[i + 1]);
                     if (s <  e) {
                         locRegister[0][i] = s;
                         locRegister[1][i] = e;
@@ -315,5 +319,31 @@ public class MazeCreaterCommand implements CommandExecutor, TabCompleter {
         MazePlayer data = new MazePlayer(uuid);
         data.start();
         mazePlayerList.add(data);
+    }
+
+    private int[][] mazeFineTuning(Player p,int[] data){return mazeFineTuning(p,data,1);}
+    private int[][] mazeFineTuning(Player p,int[] data,int width){//data = {y,x1,z1,x2,z2}
+        int[][] locRegister = new int[][]{{Math.min(data[1],data[3]),Math.min(data[2],data[4]),data[0]},{Math.max(data[1],data[3]),Math.max(data[2],data[4])}};
+        //locRegister = {y,xmin,zmin,xmax,zmax};
+        //迷路の情報を作成
+        int dxModWidth = (locRegister[1][0] - locRegister[0][0]) % (width + 1);
+        if (dxModWidth != 0) {  //道幅による横幅調整
+            locRegister[1][0] -= dxModWidth;
+            if (locRegister[0][0]== locRegister[1][0]) {
+                sendPrefixMessage(p, "§cdxが小さすぎます");
+                return null;
+            }
+            sendPrefixMessage(p, "§c§nn(間隔+1)+1=Δx§r§cを満たす自然数nが存在しなかったのでxが若干縮小されました");
+        }
+        int dzModWidth = (locRegister[1][1] - locRegister[1][0]) % (width + 1);
+        if (dzModWidth != 0) {  //道幅による縦幅調整
+            locRegister[1][1] -= dzModWidth;
+            if (locRegister[0][1] == locRegister[1][1]) {
+                sendPrefixMessage(p, "§cdxが小さすぎます");
+                return null;
+            }
+            sendPrefixMessage(p, "§c§nn(間隔+1)+1=Δz§r§cを満たす自然数nが存在しなかったのでzが若干縮小されました");
+        }
+        return locRegister;
     }
 }
