@@ -20,7 +20,7 @@ public class Function {
         MazeCreater.getInstance().getServer().broadcastMessage(PREFIX+s);
     }
 
-    public static void setBlock(World w, float[] base, List<Integer> loc, int height, Material m){
+    public static void setBlock(World w, int[] base, List<Integer> loc, int height, Material m){
         for(int k = 0;k<=height;k++){
             new Location(w,base[0]+loc.get(0),base[1]+k,base[2]+loc.get(1)).getBlock().setType(m);
         }
